@@ -1,0 +1,37 @@
+Main
+    Vars
+        Draw Manager
+        Engine
+        window
+        UI // Todo
+
+Draw Manager
+    void draw(window*, const planets*, following index, view offset, UI)
+        Iterates over planets
+            Draws circle relative to mass
+            Draws tails? // Todo
+            Draws stars/grid? // Todo
+            Draws UI // Todo
+
+Engine
+    Vars
+        Big G
+        <vector>planets
+    
+    void tick(planets*)
+        Stores planets' old physics data
+        Iterates over planets
+            Uses old data to update planets' data
+
+struct Planet
+    Vars
+        Name
+        Color
+        Mass
+        Position
+        Velocity
+
+    Equalizer(Name Color, Mass, Position, const planets*)
+        Calculates total momentum of the system
+        Uses total momentum to find balancing velocity for itself
+        Calls Init with params and new velocity
