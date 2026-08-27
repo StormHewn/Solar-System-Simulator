@@ -1,33 +1,44 @@
-Main
-    Vars
-        Draw Manager
-        Engine
-        window
-        UI // Todo
 
-Draw Manager
-    void draw(window*, const planets*, following index, view offset, UI)
+
+void main()
+    init DrawManager
+    init Engine
+    init UI // Todo
+    init window
+    until window closes
+        Start async delay future
+        Engine.Tick()
+        DrawManager.drawScene()
+        Get delay future
+
+
+                    
+    close window
+
+class DrawManager
+    void drawScene(window*, const planets*, following index, view offset, UI)
         Iterates over planets
-            Draws circle relative to mass
+            Draws circle of planet's size
             Draws tails? // Todo
             Draws stars/grid? // Todo
             Draws UI // Todo
 
-Engine
+class Engine
     Vars
         Big G
-        <vector>planets
+        <map>planets
     
-    void tick(planets*)
+    void tick()
         Stores planets' old physics data
         Iterates over planets
             Uses old data to update planets' data
 
-struct Planet
+class Planet
     Vars
         Name
         Color
         Mass
+            Size
         Position
         Velocity
 
@@ -35,3 +46,7 @@ struct Planet
         Calculates total momentum of the system
         Uses total momentum to find balancing velocity for itself
         Calls Init with params and new velocity
+    
+    bool IsInRange(worldPos)
+        Calculate distance from center to worldPos
+        return distance <= Size
