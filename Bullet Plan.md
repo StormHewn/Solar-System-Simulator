@@ -1,8 +1,8 @@
 Phase 1
 - [x] Planet
-- [/] Engine
-- [ ] Main
+- [x] Engine
 - [ ] DrawManager
+- [ ] Main
 
 Phase 2
 - [ ] UI Elements
