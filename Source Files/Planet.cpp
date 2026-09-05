@@ -6,11 +6,6 @@
 #include <map>
 using namespace Simulator;
 
-float Planet::getSize(float density) {
-    float radius = std::cbrt((4 * (mass / density)) / (3 * PI));
-    return radius;
-}
-
 Planet::Planet(Color color, float mass, Vector2 pos, std::map<std::string, Planet> planets) {
     // Calculate total momentum of all given planets
     Vector2 totalMomentum = {0, 0};

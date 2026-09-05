@@ -6,7 +6,9 @@ project(Solar_System_Simulator VERSION 1.0
 add_executable(simulator
                 "Source Files/Main.cpp"
                 "Source Files/Engine.cpp"
-                "Source Files/Planet.cpp")
+                "Source Files/Planet.cpp"
+                "Source Files/Sim History.cpp"
+                "Source Files/Planet Sprite.cpp")
 target_include_directories(simulator PUBLIC "Project Headers")
 target_include_directories(simulator PUBLIC "Raylib Source/include")
 target_link_directories(simulator PUBLIC "Raylib Source/lib")

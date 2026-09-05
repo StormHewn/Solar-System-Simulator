@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <functional>
 #include <stdexcept>
 using namespace Simulator;
 
@@ -27,7 +28,7 @@ void Engine::removePlanet(std::string name) {
     }
 }
 
-void Engine::Tick(int ticks) {
+void Engine::Tick(int ticks, std::function<void(int, Engine)> postTickFunc) {
     for (int tickCounter = 0; tickCounter < ticks; tickCounter++) {
         auto oldPlanets = MapToSet(planets);
         // Iterate over planets
@@ -49,6 +50,7 @@ void Engine::Tick(int ticks) {
                     truePlanet1->setVel(Vector2Add(truePlanet1->getVel(), (Vector2Scale(totalAcceleration, accelerationMultiplier))));
                     truePlanet1->setPos(Vector2Add(truePlanet1->getPos(), truePlanet1->getVel()));
         }
+        postTickFunc(tickCounter, *this);
     }
 }
 

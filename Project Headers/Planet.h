@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <string>
+#include <math.h>
 #include <map>
 
 #ifndef Solar_System_Simulator_PLANET_H
@@ -10,6 +11,7 @@ namespace Simulator {
         private:
             Color color;
             float mass;
+            float density;
             Vector2 pos;
             Vector2 vel;
         public:
@@ -19,13 +21,16 @@ namespace Simulator {
             float getMass() { return mass; };
             void setMass(float newMass) { mass = newMass; };
 
+            float getDensity() { return density; }
+            void setDensity(float density) { this->density = density; }
+
+            float getSize() { return std::cbrt((4 * (mass / density)) / (3 * PI)); }
+
             Vector2 getPos() { return pos; };
             void setPos(Vector2 newPos) { pos = newPos; };
 
             Vector2 getVel() { return vel; };
             void setVel(Vector2 newVel) { vel = newVel; };
-
-            float getSize(float density);
 
             Planet(Color color, float mass, Vector2 pos, Vector2 vel)
                 :color(color), mass(mass), pos(pos), vel(vel) {}

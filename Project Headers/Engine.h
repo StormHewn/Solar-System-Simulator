@@ -1,5 +1,6 @@
 #include "Planet.h"
 #include <set>
+#include <functional>
 #ifndef Solar_System_Simulator_Engine_H
 #define Solar_System_Simulator_Engine_H
 
@@ -27,9 +28,10 @@ namespace Simulator {
 
             Engine(float bigG = 0.01, float speedMultiplier = 0.1): bigG(bigG), accelerationMultiplier(speedMultiplier) {}
 
-            void Tick(int ticks);
-
-            // Converts a map into a set; only works with nonrepeating maps
+            void Tick(int ticks, std::function<void(int, Engine)>);
+            void Tick(int ticks) { Tick(ticks, [](int, Engine){}); }
+            
+            // Converts a map into a set; only works on maps with no repeating second elements
             // My alternative for a map<String, Planet> deep copy
             template <typename K, typename V> 
             std::set<V> MapToSet(std::map<K, V> map) {
