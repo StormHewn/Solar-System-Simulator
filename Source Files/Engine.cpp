@@ -6,26 +6,36 @@
 #include <string>
 #include <functional>
 #include <stdexcept>
+#define string std::string
 using namespace Simulator;
 
-void Engine::addPlanet(std::string name, Planet planet) {
-    // Search 
+Planet* Engine::addPlanet(string name, Planet planet) {
     auto it = planets.find(name);
-    bool isAvailable = it == planets.end();
+    bool isAvailable = (it == planets.end());
     if (isAvailable) {
         planets.insert({name, planet});
+        auto it = planets.find(name);
+        return &(it->second);
     } else {
         throw std::runtime_error("Planet called \'" + name + "\' already exists!");
     }
 }
 
-void Engine::removePlanet(std::string name) {
+void Engine::removePlanet(string name) {
     auto it = planets.find(name);
     if (it != planets.end()) {
         planets.erase(name);
     } else {
         throw std::runtime_error("No planet called \'" + name + "\' found!");
     }
+}
+
+std::set<string> Engine::GetNamesofPlanets(std::map<string, Planet> planets) {
+    std::set<string> planetList;
+    for (auto mapEntry : planets) {
+        planetList.insert(mapEntry.first);
+    }
+    return planetList;
 }
 
 void Engine::Tick(int ticks, std::function<void(int, Engine)> postTickFunc) {
@@ -62,4 +72,14 @@ Vector2 Engine::CalculateAcceleration(Planet p1, Planet p2) {
     float scalarAccelleration = (bigG * p2.getMass() / (distanceToP2 * distanceToP2));
     Vector2 vectorAcceleration = Vector2Scale(directionToP2, scalarAccelleration);
     return vectorAcceleration;
+}
+
+// Converts a map into a set; only works on maps with no repeating second elements
+// My alternative for a map<String, Planet> deep copy
+std::set<Planet> Engine::MapToSet(std::map<string, Planet> map) {
+    std::set<Planet> set;
+    for (auto it = map.begin(); it != map.end(); ++it) {
+        set.insert(it->second);
+    }
+    return set;
 }

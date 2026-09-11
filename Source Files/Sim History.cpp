@@ -1,6 +1,7 @@
 #include "Sim History.h"
 #include <algorithm>
 #include <ranges>
+#define string std::string
 using namespace Simulator;
 
 std::vector<Vector2*> SimHistory::GetTickDataRef(int tick) {
@@ -17,46 +18,48 @@ std::vector<Vector2*> SimHistory::GetTickDataRef(int tick) {
     return data;
 }
 
-Vector2* SimHistory::GetPosDataRef(int tick, std::string name) {
-    auto foundIterator = std::find(planetList.begin(), planetList.end(), name);
-    int foundIndex = foundIterator - planetList.begin();
+Vector2* SimHistory::GetPosDataRef(int tick, string name) {
+    auto foundIterator = planetList.find(name);
+    int foundIndex = std::distance(planetList.begin(), foundIterator);
     int dataIndex = (tick * planetList.size()) + foundIndex;
     if (simData.size() <= dataIndex) {
-        simData.resize(dataIndex+1);
+        simData.resize(dataIndex + 1);
     }
 
     return &simData[dataIndex];
 }
 
-Vector2 SimHistory::GetPlanetPos(int tick, std::string name) {
+Vector2 SimHistory::GetPlanetPos(int tick, string name) {
     return *GetPosDataRef(tick, name);
 }
 
-void SimHistory::SetPlanetPos(int tick, std::string name, Vector2 pos) {
+void SimHistory::SetPlanetPos(int tick, string name, Vector2 pos) {
     *GetPosDataRef(tick, name) = pos;
 }
 
-std::map<std::string, Vector2> SimHistory::GetTickState(int tick) {
+std::map<string, Vector2> SimHistory::GetTickState(int tick) {
     std::vector<Vector2*> tickData = GetTickDataRef(tick);
-    std::map<std::string, Vector2> tickState;
-    for (int i = 0; i < planetList.size(); i++) {
-        tickState.insert({planetList.at(i), *tickData.at(i)});
+    std::map<string, Vector2> tickState;
+    for (auto it = planetList.begin(); it != planetList.end(); ++it) {
+        int index = std::distance(planetList.begin(), it);
+        tickState.insert({*it, *tickData.at(index)});
     }
     return tickState;
 }
 
-void SimHistory::SetTickState(int tick, std::map<std::string, Vector2> tickState) {
+void SimHistory::SetTickState(int tick, std::map<string, Vector2> tickState) {
     std::vector<Vector2*> tickData = GetTickDataRef(tick);
-    for (int i = 0; i < planetList.size(); i++) {
-        std::string planetname = planetList.at(i);
-        *tickData.at(i) = tickState.at(planetname);
+    for (auto it = planetList.begin(); it != planetList.end(); ++it) {
+        int index = std::distance(planetList.begin(), it);
+        string planetname = *it;
+        *tickData.at(index) = tickState.at(planetname);
     }
 }
 
 void SimHistory::AddTickState(int tick, Engine engine) {
     std::vector<Vector2*> tickData = GetTickDataRef(tick);
     auto dataIt = tickData.begin();
-    std::map<std::string, Planet> planets = engine.getPlanets();
+    std::map<string, Planet> planets = engine.getPlanets();
     for (auto planetsIt = planets.begin(); planetsIt != planets.end(); ++planetsIt) {
         *(*dataIt) = planetsIt->second.getPos();
         ++dataIt;

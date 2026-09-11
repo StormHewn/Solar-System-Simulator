@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include <vector>
 #include <map>
+#include <set>
 #include <string>
 using namespace Simulator;
 #ifndef Solar_System_Simulator_SimHistory_H
@@ -11,7 +12,7 @@ namespace Simulator {
     class SimHistory {
         private:
             std::vector<Vector2> simData;
-            std::vector<std::string> planetList;
+            std::set<std::string> planetList;
 
             std::vector<Vector2*> GetTickDataRef(int tick);
             Vector2* GetPosDataRef(int tick, std::string name);
@@ -22,9 +23,9 @@ namespace Simulator {
             std::map<std::string, Vector2> GetTickState(int tick);
             void SetTickState(int tick, std::map<std::string, Vector2>);
 
-            const std::vector<std::string>* GetPlanetlist() { return &planetList; }
+            const std::set<std::string>* GetPlanetlist() { return &planetList; }
 
-            SimHistory(std::vector<std::string> planetList) { this->planetList = planetList; }
+            SimHistory(std::set<std::string> planetList) { this->planetList = planetList; }
 
             void AddTickState(int tick, Engine engine);
     };

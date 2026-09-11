@@ -4,12 +4,13 @@
 #include <cmath>
 #include <string>
 #include <map>
+#define string std::string
 using namespace Simulator;
 
-Planet::Planet(Color color, float mass, Vector2 pos, std::map<std::string, Planet> planets) {
+Planet::Planet(float mass, Vector2 pos, std::map<string, Planet> planets, float density) {
     // Calculate total momentum of all given planets
     Vector2 totalMomentum = {0, 0};
-    std::map<std::string, Planet>::iterator it;
+    std::map<string, Planet>::iterator it;
     // Iterate over map
     for(it = planets.begin(); it != planets.end(); ++it) {
         // Extract planet
@@ -20,6 +21,4 @@ Planet::Planet(Color color, float mass, Vector2 pos, std::map<std::string, Plane
 
     // Calculate balancing velocity based on given mass
     Vector2 targetVel = Vector2Scale(totalMomentum, (-1 / mass));
-
-    Planet(color, mass, pos, targetVel);
 }

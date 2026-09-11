@@ -4,16 +4,19 @@
 #define Solar_System_Simulator_PlanetSprite_H
 
 namespace Simulator {
-    class PlanetSprite {
+    struct PlanetSprite {
         private:
             Planet* linkedPlanet;
+            Color color;
         public:
             Planet getPlanet() { return *linkedPlanet; }
             void linkPlanet(Planet* planet) { this->linkedPlanet = planet; }
 
-            void Draw();
+            Color getColor() { return color; };
+            void setColor(Color newColor) { color = newColor; };
 
-            void PushToTrail(Vector2 pos);
+            PlanetSprite(Planet* linkedPlanetRef, Color color)
+                :linkedPlanet(linkedPlanetRef), color(color) {}
     };
 }
 
