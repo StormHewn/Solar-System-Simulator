@@ -5,7 +5,7 @@
 #include <vector>
 using namespace Simulator;
 
-void PlaybackRenderer::Draw(int tick, int trailLength) {
+void PlaybackRenderer::Draw(const SimHistory* history, int tick, int trailLength) const {
     if (IsWindowReady()) {
         for (auto it = planets.begin(); it != planets.end(); ++it) {
             // Setup

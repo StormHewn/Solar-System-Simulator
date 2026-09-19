@@ -2,7 +2,6 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <cmath>
-#include <string>
 #include <map>
 #define string std::string
 using namespace Simulator;

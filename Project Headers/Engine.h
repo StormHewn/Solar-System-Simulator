@@ -1,6 +1,7 @@
 #include "Planet.h"
 #include <set>
 #include <functional>
+#include <string>
 #ifndef Solar_System_Simulator_Engine_H
 #define Solar_System_Simulator_Engine_H
 
@@ -21,10 +22,10 @@ namespace Simulator {
             void setSimSpeed(float simSpeed) { this->accelerationMultiplier = simSpeed; }
 
             auto getPlanets() { return planets; }
-            auto getPlanet(std::string name) { return planets.at(name); }
+            const Planet* getPlanet(std::string name) { return &planets.at(name); }
             std::set<std::string> GetNamesofPlanets(std::map<std::string, Planet> planets);
             
-            Planet* addPlanet(std::string name, Planet planet);
+            void addPlanet(std::string name, Planet planet);
             void removePlanet(std::string name);
 
             Engine(float bigG = 0.01, float speedMultiplier = 0.1): bigG(bigG), accelerationMultiplier(speedMultiplier) {}

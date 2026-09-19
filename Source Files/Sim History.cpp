@@ -5,23 +5,27 @@
 using namespace Simulator;
 
 std::vector<Vector2*> SimHistory::GetTickDataRef(int tick) {
-    int dataStartIndex = tick * planetList.size();
-    int dataEndIndex = dataStartIndex + planetList.size();
-    if (simData.size() < dataEndIndex) {
-        simData.resize(dataEndIndex);
-    }
-
+    std::vector<int> range = GetTickDataIndecies(tick);
     std::vector<Vector2*> data;
-    for (int i = dataStartIndex; i < dataEndIndex; i++) {
-        data.push_back(&simData[i]);
+    for (auto it = range.begin(); it != range.end(); ++it) {
+        data.push_back(&simData[*it]);
     }
     return data;
 }
 
+std::vector<int> SimHistory::GetTickDataIndecies(int tick) const {
+    int dataStartIndex = tick * planetList.size();
+    int dataEndIndex = dataStartIndex + planetList.size();
+    std::vector<int> range;
+    for (int i = dataStartIndex; i <= dataEndIndex; i++) {
+        range.push_back(i);
+    }
+
+    return range;
+}
+
 Vector2* SimHistory::GetPosDataRef(int tick, string name) {
-    auto foundIterator = planetList.find(name);
-    int foundIndex = std::distance(planetList.begin(), foundIterator);
-    int dataIndex = (tick * planetList.size()) + foundIndex;
+    int dataIndex = GetPosDataIndex(tick, name);
     if (simData.size() <= dataIndex) {
         simData.resize(dataIndex + 1);
     }
@@ -29,20 +33,28 @@ Vector2* SimHistory::GetPosDataRef(int tick, string name) {
     return &simData[dataIndex];
 }
 
-Vector2 SimHistory::GetPlanetPos(int tick, string name) {
-    return *GetPosDataRef(tick, name);
+int SimHistory::GetPosDataIndex(int tick, string name) const {
+    auto foundIterator = planetList.find(name);
+    int foundIndex = std::distance(planetList.begin(), foundIterator);
+    int dataIndex = (tick * planetList.size()) + foundIndex;
+
+    return dataIndex;
+}
+
+Vector2 SimHistory::GetPlanetPos(int tick, string name) const {
+    return simData.at(GetPosDataIndex(tick, name));
 }
 
 void SimHistory::SetPlanetPos(int tick, string name, Vector2 pos) {
     *GetPosDataRef(tick, name) = pos;
 }
 
-std::map<string, Vector2> SimHistory::GetTickState(int tick) {
-    std::vector<Vector2*> tickData = GetTickDataRef(tick);
+std::map<string, Vector2> SimHistory::GetTickState(int tick) const {
+    std::vector<int> tickIndecies = GetTickDataIndecies(tick);
     std::map<string, Vector2> tickState;
     for (auto it = planetList.begin(); it != planetList.end(); ++it) {
         int index = std::distance(planetList.begin(), it);
-        tickState.insert({*it, *tickData.at(index)});
+        tickState.insert({*it, simData.at(tickIndecies.at(index))});
     }
     return tickState;
 }

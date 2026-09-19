@@ -1,0 +1,48 @@
+while window open
+    if Running:
+    else:
+        switch on WaitingState
+            case Hovering
+                if mouseDown
+                    record mousePos
+                    set WaitingState to Clicking
+                else
+                    continue to Waiting
+            
+            case Waiting
+                get mouse pos
+                add UI collision* to list
+                add Planet collision* to list
+                if list is empty
+                    set collided to None
+                else
+                    set collided to first of list
+                    call hover on collided
+                    set WaitingState to Hovering
+            
+            case Clicking
+                if collided is not active
+                    set WaitingState to Waiting
+                else if strayed from mousePos
+                    set WaitingState to Dragging
+                    continue to Dragging
+                else if mouseUp
+                    call activate on collided
+                    set WaitingState to Active
+            
+            case Dragging
+                if mouseDown
+                    call drag on collided
+                else
+                    set WaitingState to Waiting
+            
+            case Active
+                call update on collided
+                if (mouseDown AND outside of collision bounds) OR (enter key pressed)
+                    call tryDeactivate on collided
+                    if successful
+                        set WaitingState to Clicking
+                    else
+                        display error
+                else if (escape key pressed)
+                    call forceDeactivate on collided

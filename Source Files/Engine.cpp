@@ -3,19 +3,16 @@
 #include "raymath.h"
 #include <map>
 #include <set>
-#include <string>
 #include <functional>
 #include <stdexcept>
 #define string std::string
 using namespace Simulator;
 
-Planet* Engine::addPlanet(string name, Planet planet) {
+void Engine::addPlanet(string name, Planet planet) {
     auto it = planets.find(name);
     bool isAvailable = (it == planets.end());
     if (isAvailable) {
         planets.insert({name, planet});
-        auto it = planets.find(name);
-        return &(it->second);
     } else {
         throw std::runtime_error("Planet called \'" + name + "\' already exists!");
     }

@@ -1,7 +1,8 @@
+#include "Collidable.h"
 #include "raylib.h"
-#include <string>
 #include <math.h>
 #include <map>
+#include <string>
 #ifndef Solar_System_Simulator_PLANET_H
 #define Solar_System_Simulator_PLANET_H
 

@@ -15,15 +15,17 @@ namespace Simulator {
             std::set<std::string> planetList;
 
             std::vector<Vector2*> GetTickDataRef(int tick);
+            std::vector<int> GetTickDataIndecies(int tick) const;
             Vector2* GetPosDataRef(int tick, std::string name);
+            int GetPosDataIndex(int tick, std::string name) const;
         public:
-            Vector2 GetPlanetPos(int tick, std::string name);
+            Vector2 GetPlanetPos(int tick, std::string name) const;
             void SetPlanetPos(int tick, std::string name, Vector2 pos);
 
-            std::map<std::string, Vector2> GetTickState(int tick);
+            std::map<std::string, Vector2> GetTickState(int tick) const;
             void SetTickState(int tick, std::map<std::string, Vector2>);
 
-            const std::set<std::string>* GetPlanetlist() { return &planetList; }
+            const std::set<std::string>* GetPlanetlist() const { return &planetList; }
 
             SimHistory(std::set<std::string> planetList) { this->planetList = planetList; }
 

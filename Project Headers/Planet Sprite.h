@@ -4,18 +4,18 @@
 #define Solar_System_Simulator_PlanetSprite_H
 
 namespace Simulator {
-    struct PlanetSprite {
+    struct PlanetSprite : public Collidable {
         private:
-            Planet* linkedPlanet;
+            const Planet* linkedPlanet;
             Color color;
         public:
             Planet getPlanet() { return *linkedPlanet; }
-            void linkPlanet(Planet* planet) { this->linkedPlanet = planet; }
+            void linkPlanet(const Planet* planet) { this->linkedPlanet = planet; }
 
             Color getColor() { return color; };
             void setColor(Color newColor) { color = newColor; };
 
-            PlanetSprite(Planet* linkedPlanetRef, Color color)
+            PlanetSprite(const Planet* linkedPlanetRef, Color color)
                 :linkedPlanet(linkedPlanetRef), color(color) {}
     };
 }
