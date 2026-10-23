@@ -3,15 +3,13 @@
 #include <math.h>
 #define padding 2
 #define fontSize (hitBox.height - (padding * 2))
+#define textWindowWidth int(hitBox.width - 2 * padding)
 #define string std::string
-#define StartRecordTime startedKeyHoldTimestamp = GetTime();
-#define StopRecordTime startedKeyHoldTimestamp = -1;
-#define KeyHoldTime (startedKeyHoldTimestamp == -1) ? -1 : GetTime() - startedKeyHoldTimestamp
-#define StartKeyFireDelay startedKeyHoldTimestamp = GetTime() - (1 / 30);
+#define comingOutOfSelect ((selectionAnchor != -1) && !(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)))
 using namespace Simulator;
 
 int UIString::ProbeLocation(Vector2 position) {
-    float startPos = hitBox.x + padding;
+    float startPos = hitBox.x + padding - displayOffset;
     float distanceToStart = position.x - startPos;
     string probeString = getter();
     for (int i = probeString.size(); i > 0; i--) {
@@ -27,12 +25,63 @@ int UIString::ProbeLocation(Vector2 position) {
     return 0;
 }
 
-void UIString::DeleteSelectionBubble() {
+void UIString::DeleteSelection() {
     int indexMin = std::min(pointerLocBefore, selectionAnchor);
     int indexDiff = std::abs(pointerLocBefore - selectionAnchor);
     setter(getter().erase(indexMin, indexDiff));
-    pointerLocBefore = indexMin;
+    UpdatePointerLocAndDisplayOffset(indexMin);
     selectionAnchor = -1;
+}
+
+void UIString::CopySelection() {
+    if (selectionAnchor != -1) {
+        int indexMin = std::min(pointerLocBefore, selectionAnchor);
+        int indexDiff = std::abs(pointerLocBefore - selectionAnchor);
+        SetClipboardText(getter().substr(indexMin, indexDiff).c_str());
+    }
+}
+
+void UIString::CutSelection() {
+    CopySelection();
+    DeleteSelection();
+}
+
+void UIString::Paste() {
+    if (selectionAnchor != -1) {
+        DeleteSelection();
+    }
+    string modifiedString = getter();
+    string pastedText = GetClipboardText();
+    modifiedString.insert(pointerLocBefore, pastedText);
+    setter(modifiedString);
+    UpdatePointerLocAndDisplayOffset(pointerLocBefore + pastedText.size());
+}
+
+void UIString::MoveOrSelect(int newPointerLoc) {
+    if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
+        if (selectionAnchor == -1) {
+            selectionAnchor = pointerLocBefore;
+        }
+    } else {
+        selectionAnchor = -1;
+    }
+    UpdatePointerLocAndDisplayOffset(newPointerLoc);
+}
+
+void UIString::UpdatePointerLocAndDisplayOffset(int newPointerLoc) {
+    // Set pointer loc (clamped)
+    pointerLocBefore = std::clamp(newPointerLoc, 0, int(getter().size()));
+
+    // Compute text display offset
+    int stringEndOffset = MeasureText(getter().c_str(), fontSize);
+    int pointerLocOffset = MeasureText(getter().erase(pointerLocBefore).c_str(), fontSize);
+
+    // if pointer offset is less than the current offset, set the current offset to the pointer offset
+    if (pointerLocOffset < displayOffset) displayOffset = pointerLocOffset;
+    // if pointer offset is past the current offset's right bound, set the current offset to the pointer offset minus the text window width
+    else if (pointerLocOffset > displayOffset + textWindowWidth) displayOffset = pointerLocOffset - textWindowWidth;
+    // if text length is less than the current offset plus the window size, set the current offset to the text length minus the text window width
+    else if (stringEndOffset < displayOffset + textWindowWidth) displayOffset = std::max(stringEndOffset - textWindowWidth, 0);
 }
 
 void UIString::Draw(Vector2 anchor) {
@@ -48,7 +97,9 @@ void UIString::Draw(Vector2 anchor) {
     DrawRectangleRec(hitBox, boxColor);
 
     // Draw Text
-    DrawText(getter().c_str(), hitBox.x + padding, hitBox.y + padding, fontSize, WHITE);
+    BeginScissorMode(hitBox.x + padding, hitBox.y + padding, textWindowWidth, hitBox.height - padding*2);
+        DrawText(getter().c_str(), hitBox.x + padding - displayOffset, hitBox.y + padding, fontSize, WHITE);
+    EndScissorMode();
     
     // Draw selection bubble (only if selectionAnchor isn't -1)
     if (selectionAnchor != -1) {
@@ -61,30 +112,30 @@ void UIString::Draw(Vector2 anchor) {
         float xPosDiff = std::abs(xPos1 - xPos2);
         float xPosMin = std::min(xPos1, xPos2);
         Color color = ColorAlpha(BLUE, 0.5);
-        DrawRectangle(xPosMin, (hitBox.y + padding), xPosDiff, fontSize, color);
+        DrawRectangle(xPosMin - displayOffset, (hitBox.y + padding), xPosDiff, fontSize, color);
     }
 
     // Draw Text Bar (only if (this is active and timing is right) or (shouldPointerRender is true))
-    if (isActive && ((GetTime() - std::trunc(GetTime())) < 0.5) || (shouldPointerRender)) {
+    if (isActive && ((GetTime() - std::trunc(GetTime())) < 0.5) || (forcePointerRender)) {
         string utilString = getter();
         utilString.resize(pointerLocBefore);
         float BarXPos = hitBox.x + padding + MeasureText(utilString.c_str(), fontSize);
-        DrawLineEx(Vector2{BarXPos, hitBox.y + padding}, Vector2{BarXPos, hitBox.y + hitBox.height - padding}, 2, WHITE);
+        DrawLineEx(Vector2{BarXPos - displayOffset, hitBox.y + padding}, Vector2{BarXPos - displayOffset, hitBox.y + hitBox.height - padding}, 2, WHITE);
     }
 }
 
 void UIString::Update() {
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        int currentPointerLocBefore = ProbeLocation(GetMousePosition());
-        if (isMouseSelecting) {
-            if ((pointerLocBefore != currentPointerLocBefore) && (selectionAnchor == -1)) {
+        int mousePos = ProbeLocation(GetMousePosition());
+        if (!isMouseSelecting) { // Initial click
+            MoveOrSelect(mousePos);
+            isMouseSelecting = true;
+        } else { // Hold
+            if ((pointerLocBefore != mousePos) && (selectionAnchor == -1)) { // If I'm dragging and I don't already have a bubble
                 selectionAnchor = pointerLocBefore;
             }
-        } else {
-            selectionAnchor = -1;
+            UpdatePointerLocAndDisplayOffset(mousePos);
         }
-        pointerLocBefore = currentPointerLocBefore;
-        isMouseSelecting = true;
     } else {
         isMouseSelecting = false;
     }
@@ -93,12 +144,12 @@ void UIString::Update() {
     while (pressedChar != 0) {
         if ((pressedChar >= 32) && (pressedChar <= 126)) {
             if (selectionAnchor != -1) {
-                DeleteSelectionBubble();
+                DeleteSelection();
             }
-            string oldString = getter();
-            oldString.insert(oldString.begin() + pointerLocBefore, pressedChar);
-            setter(oldString);
-            pointerLocBefore++;
+            string modifiedString = getter();
+            modifiedString.insert(modifiedString.begin() + pointerLocBefore, pressedChar);
+            setter(modifiedString);
+            UpdatePointerLocAndDisplayOffset(pointerLocBefore + 1);
         }
 
         // Returns 0 if no more keys pressed, breaking the while loop
@@ -106,49 +157,58 @@ void UIString::Update() {
     }
 
     if (IsKeyPressed(KEY_LEFT) || IsKeyPressedRepeat(KEY_LEFT)) {
-        if (pointerLocBefore != 0) {
-            if (IsKeyDown(KEY_LEFT_SHIFT)) {
-                if (selectionAnchor == -1) {
-                    selectionAnchor = pointerLocBefore;
-                }
-            } else {
-                selectionAnchor = -1;
-            }
-            pointerLocBefore--;
-            shouldPointerRender = true;
+        if comingOutOfSelect {
+            int newPointerLoc = std::min(selectionAnchor, pointerLocBefore) - 1;
+            UpdatePointerLocAndDisplayOffset(newPointerLoc);
+            selectionAnchor = -1;
+        } else {
+            MoveOrSelect(pointerLocBefore - 1);
         }
+        forcePointerRender = true;
     } else if (IsKeyPressed(KEY_RIGHT) || IsKeyPressedRepeat(KEY_RIGHT)) {
-        if (pointerLocBefore != getter().size()) {
-            if (IsKeyDown(KEY_LEFT_SHIFT)) {
-                if (selectionAnchor == -1) {
-                    selectionAnchor = pointerLocBefore;
-                }
-            } else {
-                selectionAnchor = -1;
-            }
-            pointerLocBefore++;
-            shouldPointerRender = true;
+        if comingOutOfSelect {
+            int newPointerLoc = std::max(selectionAnchor, pointerLocBefore) + 1;
+            UpdatePointerLocAndDisplayOffset(newPointerLoc);
+            selectionAnchor = -1;
+        } else {
+            MoveOrSelect(pointerLocBefore + 1);
         }
+        forcePointerRender = true;
     } else if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
         if (selectionAnchor == -1) {
             if (pointerLocBefore != 0) {
                 setter(getter().erase(pointerLocBefore - 1, 1));
-                pointerLocBefore--;
-                shouldPointerRender = true;
+                UpdatePointerLocAndDisplayOffset(pointerLocBefore - 1);
+                forcePointerRender = true;
             }
         } else {
-            DeleteSelectionBubble();
+            DeleteSelection();
         }
     } else if (IsKeyPressed(KEY_DELETE) || IsKeyPressedRepeat(KEY_DELETE)) {
         if (selectionAnchor == -1) {
             if (pointerLocBefore != getter().size()) {
                 setter(getter().erase(pointerLocBefore, 1));
-                shouldPointerRender = true;
+                forcePointerRender = true;
             }
         } else {
-            DeleteSelectionBubble();
+            DeleteSelection();
         }
+    } else if (IsKeyPressed(KEY_HOME)) {
+        MoveOrSelect(0);
+        forcePointerRender = true;
+    } else if (IsKeyPressed(KEY_END)) {
+        MoveOrSelect(getter().size());
+        forcePointerRender = true;
+    } else if (IsKeyPressed(KEY_A) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
+            selectionAnchor = 0;
+            UpdatePointerLocAndDisplayOffset(getter().size());
+    } else if (IsKeyPressed(KEY_C) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
+            CopySelection();
+    } else if (IsKeyPressed(KEY_X) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
+            CutSelection();
+    } else if (IsKeyPressed(KEY_V) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
+            Paste();
     } else {
-        shouldPointerRender = false;
+        forcePointerRender = false;
     }
 }

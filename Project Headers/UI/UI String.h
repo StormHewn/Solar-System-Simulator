@@ -10,15 +10,21 @@ namespace Simulator {
             std::function<std::string()> getter;
             std::function<void(std::string)> setter;
             int pointerLocBefore = 0;
-            bool shouldPointerRender = false;
+            bool forcePointerRender = false;
             int selectionAnchor = -1;
+            int displayOffset = 0;
             bool isMouseSelecting = false;
             float brightnessShift = 0;
             bool isActive = false;
             std::string oldString = "";
 
             int ProbeLocation(Vector2 position);
-            void DeleteSelectionBubble();
+            void DeleteSelection();
+            void CopySelection();
+            void CutSelection();
+            void Paste();
+            void MoveOrSelect(int newPointerLoc);
+            void UpdatePointerLocAndDisplayOffset(int newPointerLoc);
         public:
             std::function<std::string()> getGetter() { return getter; }
             std::function<void(std::string)> getSetter() { return setter; }
@@ -34,16 +40,19 @@ namespace Simulator {
             void StartClick() { brightnessShift = -0.2; }
             void Activate() {
                 isActive = true;
-                pointerLocBefore = ProbeLocation(GetMousePosition());
+                UpdatePointerLocAndDisplayOffset(ProbeLocation(GetMousePosition()));
                 oldString = getter();
             }
             void Update();
             void Drag() {}
             std::string Deactivate(bool canceled){
-                isActive = false;
-                brightnessShift = 0;
+                UpdatePointerLocAndDisplayOffset(0);
+                forcePointerRender = false;
                 selectionAnchor = -1;
+                displayOffset = 0;
                 isMouseSelecting = false;
+                brightnessShift = 0;
+                isActive = false;
                 if (canceled) { setter(oldString); }
                 oldString = "";
                 return "";

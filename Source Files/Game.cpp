@@ -36,10 +36,6 @@ void Game::GameLoop() {
     camera.rotation = 0;
     camera.zoom = 1;
 
-    Texture ghost = LoadTexture("/home/matt-knox/Documents/VS Code/Git/Solar-System-Simulator/Ghosts.png");
-    ghost.width = 400;
-    ghost.height = 400;
-
     while (!WindowShouldClose())
     {
         // Main Game Loop
